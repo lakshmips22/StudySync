@@ -1,0 +1,36 @@
+# Python environments and bytecode
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local configuration and secrets
+.env
+.env.*
+.streamlit/secrets.toml
+
+# Local StudySync database (created automatically at runtime)
+/data/*.db
+/data/*.db-*
+/data/*.sqlite
+/data/*.sqlite3
+
+# Test, type-check, and build artifacts
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
