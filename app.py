@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
-import io
 
 import pandas as pd
 import plotly.express as px
@@ -82,6 +81,9 @@ def dashboard():
     cards = st.columns(5)
     for col, label, value, foot in zip(cards, ['Subjects','Study tasks','Completed','Pending','Overall progress'], [str(len(subjects)),str(len(tasks)),str(completed),str(pending),f'{pct}%'], ['Your learning tracks','Across every subject','Nice work so far','Ready when you are','Keep your streak going']):
         with col: metric(label,value,foot)
+    deadline_cards = st.columns(2)
+    with deadline_cards[0]: metric('Due today', str(due_today), 'Open tasks with a deadline today')
+    with deadline_cards[1]: metric('Overdue', str(overdue), 'Open tasks past their deadline')
     st.write('')
     left,right=st.columns([1.35,1])
     with left:
@@ -91,7 +93,7 @@ def dashboard():
             chart=pd.DataFrame({'Status':['Completed','In progress','Pending'],'Tasks':[int((tasks.status=='Completed').sum()),int((tasks.status=='In Progress').sum()),int((tasks.status=='Pending').sum())]})
             fig=px.pie(chart,names='Status',values='Tasks',hole=.70,color='Status',color_discrete_map={'Completed':'#43b58b','In progress':'#6385ec','Pending':'#dce4f2'})
             fig.update_traces(textinfo='none',hovertemplate='%{label}: %{value}<extra></extra>'); fig.update_layout(height=250,margin=dict(t=8,b=8,l=8,r=8),showlegend=True,legend=dict(orientation='h',y=-.12),paper_bgcolor='white',plot_bgcolor='white')
-            st.plotly_chart(fig,use_container_width=True,config={'displayModeBar':False})
+            st.plotly_chart(fig,width="stretch",config={'displayModeBar':False})
             st.progress(completed/max(len(tasks),1),text=f'{pct}% overall completion')
         st.markdown('</div>',unsafe_allow_html=True)
     with right:
@@ -204,7 +206,7 @@ def tasks_page():
         status_filter=d.selectbox('Status',['All statuses','Pending','In Progress','Completed'],label_visibility='collapsed')
         a,b,c=st.columns(3); date_filter=a.selectbox('Deadline',['Any date','Overdue','Due today','Due tomorrow','Upcoming (next 7 days)']); sort=a.selectbox('Sort by',['Soonest deadline','Priority','Newest first']); show=a.selectbox('Show',['All tasks','Open tasks only','Completed only'])
     filtered=tasks.copy()
-    if query.strip(): filtered=filtered[filtered.title.str.contains(query.strip(),case=False,na=False)|filtered.description.str.contains(query.strip(),case=False,na=False)]
+    if query.strip(): filtered=filtered[filtered.title.str.contains(query.strip(),case=False,na=False,regex=False)|filtered.description.str.contains(query.strip(),case=False,na=False,regex=False)]
     if subject_filter!='All subjects': filtered=filtered[filtered.subject==subject_filter]
     if priority_filter!='All priorities': filtered=filtered[filtered.priority==priority_filter]
     if status_filter!='All statuses': filtered=filtered[filtered.status==status_filter]
@@ -261,7 +263,7 @@ def sessions_page():
         else:
             by=sessions.groupby('subject',as_index=False).duration_minutes.sum().sort_values('duration_minutes',ascending=True)
             fig=px.bar(by,x='duration_minutes',y='subject',orientation='h',color='subject',color_discrete_sequence=px.colors.qualitative.Safe,labels={'duration_minutes':'Minutes','subject':''})
-            fig.update_layout(height=max(230,40*len(by)),showlegend=False,margin=dict(t=8,b=8,l=8,r=8),paper_bgcolor='white',plot_bgcolor='white'); st.plotly_chart(fig,use_container_width=True,config={'displayModeBar':False})
+            fig.update_layout(height=max(230,40*len(by)),showlegend=False,margin=dict(t=8,b=8,l=8,r=8),paper_bgcolor='white',plot_bgcolor='white'); st.plotly_chart(fig,width="stretch",config={'displayModeBar':False})
         st.markdown('</div>',unsafe_allow_html=True)
     with right:
         st.markdown('<div class="panel"><h3 style="margin:0">Recent sessions</h3>',unsafe_allow_html=True)
@@ -286,12 +288,12 @@ def analytics_page():
             st.markdown('<div class="panel"><h3 style="margin:0">Subject-wise completion</h3>',unsafe_allow_html=True)
             data=subjects[['name','task_count','completed_count']].copy(); data['Completion %']=data.apply(lambda r:round(100*r.completed_count/r.task_count) if r.task_count else 0,axis=1)
             fig=px.bar(data,x='name',y='Completion %',color='name',range_y=[0,100],labels={'name':'Subject'},color_discrete_sequence=px.colors.qualitative.Safe)
-            fig.update_layout(height=330,showlegend=False,margin=dict(t=10,b=10),paper_bgcolor='white',plot_bgcolor='white'); st.plotly_chart(fig,use_container_width=True,config={'displayModeBar':False}); st.markdown('</div>',unsafe_allow_html=True)
+            fig.update_layout(height=330,showlegend=False,margin=dict(t=10,b=10),paper_bgcolor='white',plot_bgcolor='white'); st.plotly_chart(fig,width="stretch",config={'displayModeBar':False}); st.markdown('</div>',unsafe_allow_html=True)
         with right:
             st.markdown('<div class="panel"><h3 style="margin:0">Priority distribution</h3>',unsafe_allow_html=True)
             dist=tasks.groupby('priority',as_index=False).size().rename(columns={'size':'Tasks'})
             fig=px.pie(dist,names='priority',values='Tasks',hole=.55,color='priority',color_discrete_map={'High':'#e66b72','Medium':'#f3b44d','Low':'#5bba91'})
-            fig.update_layout(height=330,margin=dict(t=12,b=12),paper_bgcolor='white',legend_title_text='Priority'); st.plotly_chart(fig,use_container_width=True,config={'displayModeBar':False}); st.markdown('</div>',unsafe_allow_html=True)
+            fig.update_layout(height=330,margin=dict(t=12,b=12),paper_bgcolor='white',legend_title_text='Priority'); st.plotly_chart(fig,width="stretch",config={'displayModeBar':False}); st.markdown('</div>',unsafe_allow_html=True)
         completed_rows=tasks[tasks.status=='Completed'].copy()
         if not completed_rows.empty:
             completed_rows['completed_day']=pd.to_datetime(completed_rows.completed_at,errors='coerce').dt.date
@@ -302,7 +304,7 @@ def analytics_page():
         else: days['Tasks completed']=0
         days['Tasks completed']=days['Tasks completed'].fillna(0).astype(int)
         fig=px.bar(days,x='completed_day',y='Tasks completed',labels={'completed_day':'Day'},color_discrete_sequence=['#5b7ce7'])
-        fig.update_layout(height=290,margin=dict(t=8,b=8),paper_bgcolor='white',plot_bgcolor='white'); st.plotly_chart(fig,use_container_width=True,config={'displayModeBar':False}); st.markdown('</div>',unsafe_allow_html=True)
+        fig.update_layout(height=290,margin=dict(t=8,b=8),paper_bgcolor='white',plot_bgcolor='white'); st.plotly_chart(fig,width="stretch",config={'displayModeBar':False}); st.markdown('</div>',unsafe_allow_html=True)
 
 def settings_page():
     subjects,tasks,sessions=load_data(); hero('Settings & data','Keep control of your local study planner data.')
@@ -315,7 +317,7 @@ def settings_page():
     exports=[('Subjects',subjects.drop(columns=['task_count','completed_count'],errors='ignore'),'studysync_subjects.csv'),('Tasks',tasks,'studysync_tasks.csv'),('Study sessions',sessions,'studysync_sessions.csv')]
     cols=st.columns(3)
     for col,(label,data,filename) in zip(cols,exports):
-        col.download_button(f'⬇️ {label} CSV',data=csv_bytes(data),file_name=filename,mime='text/csv',disabled=data.empty,use_container_width=True)
+        col.download_button(f'⬇️ {label} CSV',data=csv_bytes(data),file_name=filename,mime='text/csv',disabled=data.empty,width="stretch")
     st.markdown('</div>',unsafe_allow_html=True)
     st.markdown('<div class="panel"><h3 style="margin:0">About StudySync</h3><p class="small-muted">A local-first student productivity prototype. StudySync stores subjects, tasks, and study sessions in a SQLite database on this computer. No account or external service is required.</p></div>',unsafe_allow_html=True)
     st.markdown('<div class="panel"><h3 style="margin:0;color:#a83c4c">Reset all data</h3><div class="small-muted">Permanently delete every subject, task, and study session from this local database.</div>',unsafe_allow_html=True)
