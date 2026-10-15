@@ -26,6 +26,26 @@ Assignments, revision plans, and study time often end up spread across separate 
 - Pandas
 - Plotly Express
 
+## Screenshots
+
+### Dashboard
+![StudySync dashboard](screenshots/dashboard.png)
+
+### Tasks
+![StudySync task management](screenshots/tasks.png)
+
+### Subjects
+![StudySync subject management](screenshots/subjects.png)
+
+### Study sessions
+![StudySync study sessions](screenshots/study-sessions.png)
+
+### Analytics
+![StudySync analytics](screenshots/analytics.png)
+
+### Settings
+![StudySync settings](screenshots/settings.png)
+
 ## Project structure
 
 ```text
@@ -34,7 +54,7 @@ StudySync/
 ├── app.py                 # Streamlit pages and interface
 ├── database.py            # SQLite schema and data-access functions
 ├── requirements.txt
-├── README.md
+├── screenshots/           # Application screenshots
 └── tests/
     ├── test_app.py        # Streamlit page and task workflow checks
     └── test_database.py   # Isolated SQLite persistence checks
@@ -84,19 +104,6 @@ python -m unittest discover -s tests -v
 ```
 
 The test suite uses temporary SQLite databases. It checks database CRUD, task status timestamps, session persistence, demo-data idempotence, empty and populated page rendering, dashboard deadline counts, task add/edit/delete/search/status flows, subject UI CRUD, and study-session UI persistence. Nine automated tests passed on 2026-10-15. Browser checks remain useful for visual layout and downloaded-file inspection.
-
-## Screenshots
-
-No screenshots are included yet. Capture the running app and save the images in a new `screenshots/` folder using these filenames:
-
-- `screenshots/dashboard.png` — dashboard with demo data, deadline metrics, subject progress, and today's focus.
-- `screenshots/tasks.png` — task list showing filters and several statuses.
-- `screenshots/subjects.png` — subject list and completion bars.
-- `screenshots/study-sessions.png` — total study time and session history.
-- `screenshots/analytics.png` — subject completion, priority, and weekly charts.
-- `screenshots/settings.png` — demo-data and CSV export controls.
-
-Once an image exists in the repository, add it with a relative Markdown image link, for example `![StudySync dashboard](screenshots/dashboard.png)`. Do not commit screenshots containing personal or private study information.
 
 ## Known limitations
 
